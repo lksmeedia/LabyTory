@@ -17,7 +17,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Initialize VertexAI with project and location
 const vertex_ai = new VertexAI({
     project: process.env.GOOGLE_PROJECT_ID,
-    location: 'us-central1', // Ensure this is a region where 2.5 Pro is available
+    // MODIFICATION: Match Vercel's function region
+    location: 'iad1',
 });
 
 // Define the model configuration

@@ -31,6 +31,10 @@ const model = vertex_ai.getGenerativeModel({
     ],
 });
 
+// MODIFICATION: Add a default route for the homepage
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+
 // Define the API endpoint that the frontend will call
 app.post('/generate-adventure', async (req, res) => {
     try {

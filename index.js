@@ -17,24 +17,25 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Initialize VertexAI with project and location
 const vertex_ai = new VertexAI({
     project: process.env.GOOGLE_PROJECT_ID,
-    // MODIFICATION: Match Vercel's function region
-    location: 'iad1',
+    location: 'us-central1',
 });
 
 // Define the model configuration
 const model = vertex_ai.getGenerativeModel({
-    model: 'gemini-2.5-pro',
+    model: 'gemini-2.5-pro-latest',
     safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+        // MODIFICATION: Removed comma from the line below
+        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH }
     ],
 });
 
-// MODIFICATION: Add a default route for the homepage
+// Add a default route for the homepage
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // Define the API endpoint that the frontend will call
 app.post('/generate-adventure', async (req, res) => {
@@ -63,7 +64,6 @@ app.post('/generate-adventure', async (req, res) => {
             7.  **## Conclusion:** Describe how the adventure might conclude.
         `;
 
-        // MODIFICATION: The 'contents' array must be inside the request object
         const request = {
             contents: [{ role: 'user', parts: [{ text: prompt }] }],
         };
@@ -85,7 +85,5 @@ app.post('/generate-adventure', async (req, res) => {
     }
 });
 
-// Start the server
+// Export the app for Vercel to handle
 module.exports = app;
-}
-)

@@ -10,15 +10,19 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize VertexAI with project and location from Vercel's environment variables
+// MODIFICATION: Manually parse the credentials from the environment variable
+const credentialsJson = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
 const vertex_ai = new VertexAI({
     project: process.env.GOOGLE_PROJECT_ID,
     location: 'us-central1',
+    credentials: {
+        client_email: credentialsJson.client_email,
+        private_key: credentialsJson.private_key,
+    }
 });
 
 // Define the model configuration
 const model = vertex_ai.getGenerativeModel({
-    // Using a known-stable model for final diagnosis
     model: 'gemini-1.5-pro-latest',
     safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },

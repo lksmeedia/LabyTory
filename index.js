@@ -4,35 +4,7 @@ const { VertexAI, HarmCategory, HarmBlockThreshold } = require('@google-cloud/ve
 const cors = require('cors');
 const path = require('path');
 
-// --- Create Credentials object only if the environment variable exists ---
-let credentials;
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    try {
-        credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
-    } catch (e) {
-        console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS:', e);
-    }
-}
-
-// Initialize VertexAI with project, location, and parsed credentials
-const vertex_ai = new VertexAI({
-    project: process.env.GOOGLE_PROJECT_ID,
-    location: 'us-central1',
-    credentials, // Pass the parsed credentials object
-});
-
-// Define the model configuration
-const model = vertex_ai.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
-    safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH }
-    ],
-});
-
-// Initialize Express app after configuration
+// Initialize Express app
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -46,12 +18,31 @@ app.get('/', (req, res) => {
 // Define the API endpoint that the frontend will call
 app.post('/generate-adventure', async (req, res) => {
     try {
+        // --- MODIFICATION: Initialize the client and model INSIDE the handler ---
+        const credentials = JSON.parse(Buffer.from(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'base64').toString('utf-8'));
+
+        const vertex_ai = new VertexAI({
+            project: process.env.GOOGLE_PROJECT_ID,
+            location: 'us-central1',
+            credentials,
+        });
+
+        const model = vertex_ai.getGenerativeModel({
+            model: 'gemini-1.5-pro-latest',
+            safetySettings: [
+                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
+                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH }
+            ],
+        });
+        // --- End of modification ---
+
         const { system, players, experience, genre, tone, concept } = req.body;
 
         const prompt = `
             Create a complete, professionally formatted TTRPG adventure module.
             The final output should be in Markdown format.
-
             **Adventure Parameters:**
             - **Game System:** ${system}
             - **Number of Players:** ${players}
@@ -59,15 +50,6 @@ app.post('/generate-adventure', async (req, res) => {
             - **Genre:** ${genre}
             - **Tone:** ${tone}
             - **Core Concept:** ${concept}
-
-            **Required Structure:**
-            1.  **# Title:** Come up with a creative title for the adventure.
-            2.  **## Adventure Synopsis:** A short summary for the Game Master.
-            3.  **## Player Hooks:** Provide three distinct plot hooks to get the players involved.
-            4.  **## Key Scenes & Encounters:** Detail the main sequence of events.
-            5.  **## Key NPCs and Monsters:** List important characters and creatures.
-            6.  **## Maps & Artwork Ideas:** Describe key map locations.
-            7.  **## Conclusion:** Describe how the adventure might conclude.
         `;
 
         const request = {

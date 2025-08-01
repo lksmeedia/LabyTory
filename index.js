@@ -22,7 +22,7 @@ const vertex_ai = new VertexAI({
 
 // Define the model configuration
 const model = vertex_ai.getGenerativeModel({
-    model: 'gemini-2.5-pro-latest',
+    model: 'gemini-2.5-pro', // Or the specific 2.5 pro model
     safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },

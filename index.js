@@ -1,12 +1,8 @@
 // Import necessary packages
 const express = require('express');
 const { VertexAI, HarmCategory, HarmBlockThreshold } = require('@google-cloud/vertexai');
-const dotenv = require('dotenv');
 const cors = require('cors');
 const path = require('path');
-
-// Load environment variables from .env file
-dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -14,7 +10,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize VertexAI with project and location
+// Initialize VertexAI with project and location from Vercel's environment variables
 const vertex_ai = new VertexAI({
     project: process.env.GOOGLE_PROJECT_ID,
     location: 'us-central1',
@@ -22,12 +18,12 @@ const vertex_ai = new VertexAI({
 
 // Define the model configuration
 const model = vertex_ai.getGenerativeModel({
-    model: 'gemini-2.5-pro', // Or the specific 2.5 pro model
+    // Using a known-stable model for final diagnosis
+    model: 'gemini-1.5-pro-latest',
     safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
-        // MODIFICATION: Removed comma from the line below
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH }
     ],
 });

@@ -1,8 +1,12 @@
 {
   "version": 2,
+  "engines": {
+    "node": "20.x"
+  },
   "functions": {
     "index.js": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "memory": 3008
     }
   },
   "builds": [

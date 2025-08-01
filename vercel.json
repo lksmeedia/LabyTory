@@ -1,15 +1,13 @@
 {
   "version": 2,
-  "functions": {
-    "index.js": {
-      "maxDuration": 60,
-      "memory": 3008
-    }
-  },
   "builds": [
     {
       "src": "index.js",
-      "use": "@vercel/node@20.x"
+      "use": "@vercel/node@20.x",
+      "config": {
+        "maxDuration": 60,
+        "memory": 3008
+      }
     },
     {
       "src": "public/**",

@@ -4,21 +4,21 @@ const { VertexAI, HarmCategory, HarmBlockThreshold } = require('@google-cloud/ve
 const cors = require('cors');
 const path = require('path');
 
-// Initialize Express app
-const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'public')));
+// --- Create Credentials object only if the environment variable exists ---
+let credentials;
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    try {
+        credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+    } catch (e) {
+        console.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS:', e);
+    }
+}
 
-// MODIFICATION: Manually parse the credentials from the environment variable
-const credentialsJson = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+// Initialize VertexAI with project, location, and parsed credentials
 const vertex_ai = new VertexAI({
     project: process.env.GOOGLE_PROJECT_ID,
     location: 'us-central1',
-    credentials: {
-        client_email: credentialsJson.client_email,
-        private_key: credentialsJson.private_key,
-    }
+    credentials, // Pass the parsed credentials object
 });
 
 // Define the model configuration
@@ -31,6 +31,12 @@ const model = vertex_ai.getGenerativeModel({
         { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH }
     ],
 });
+
+// Initialize Express app after configuration
+const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Add a default route for the homepage
 app.get('/', (req, res) => {

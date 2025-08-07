@@ -6,13 +6,13 @@ const path = require('path');
 
 // The Vercel integration handles authentication automatically
 const vertex_ai = new VertexAI({
-    project: process.env.GCP_PROJECT_ID, // Use the variable provided by the integration
+    project: process.env.GOOGLE_PROJECT_ID, // Use the variable provided by the integration
     location: 'us-central1',
 });
 
 // Define the model configuration
 const model = vertex_ai.getGenerativeModel({
-    model: 'gemini-1.5-pro-latest',
+    model: 'gemini-2.5-pro',
     safetySettings: [
         { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
         { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
@@ -62,5 +62,7 @@ app.post('/generate-adventure', async (req, res) => {
     }
 });
 
-// Export the app for Vercel to handle
-module.exports = app;
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

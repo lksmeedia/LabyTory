@@ -13,8 +13,5 @@ RUN npm install --omit=dev
 # Bundle app source
 COPY . .
 
-# Your app binds to the port provided by Cloud Run
-# No need to specify a port here, Cloud Run handles it.
-
-# Define the command to run your app
-CMD [ "node", "index.js" ]
+# MODIFICATION: Use npm start to run the application
+CMD [ "npm", "start" ]

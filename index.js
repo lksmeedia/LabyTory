@@ -35,7 +35,7 @@ app.post('/generate-adventure', async (req, res) => {
         });
 
         const model = vertex_ai.getGenerativeModel({
-            model: 'gemini-1.5-pro-001',
+            model: 'gemini-2.5-pro',
             safetySettings: [
                 { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },
                 { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_ONLY_HIGH },

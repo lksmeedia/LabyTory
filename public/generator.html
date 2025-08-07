@@ -301,15 +301,14 @@
 
 <script>
     document.getElementById('adventure-form').addEventListener('submit', async function(event) {
-        event.preventDefault(); // Prevent the form from submitting the traditional way
+        event.preventDefault();
 
-        // UI feedback: Disable button and show loading message
         const generateButton = document.getElementById('generate-button');
         const loadingMessage = document.getElementById('loading-message');
         generateButton.disabled = true;
+        loadingMessage.textContent = '✨ Your request has been submitted. Forging your saga...';
         loadingMessage.style.display = 'block';
 
-        // 1. Collect data from the form
         const formData = {
             system: document.getElementById('game-system').value,
             players: document.getElementById('player-count').value,
@@ -319,39 +318,56 @@
             concept: document.getElementById('core-concept').value
         };
 
-        // 2. Send the data to the backend server
         try {
-            // The endpoint '/generate-adventure' should match the one in your server.js
-            const response = await fetch('/generate-adventure', {
+            // Step 1: Start the job
+            const startResponse = await fetch('/generate-adventure', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
 
-            if (!response.ok) {
-                // Handle server errors (e.g., API key issue, server crash)
-                throw new Error(`Server error! Status: ${response.status}`);
+            if (!startResponse.ok) {
+                throw new Error(`Server error! Status: ${startResponse.status}`);
             }
 
-            const result = await response.json();
+            const { jobId } = await startResponse.json();
 
-            // 3. Store the result in the browser's local storage
-            localStorage.setItem('adventureResult', result.adventureText);
-
-            // 4. Redirect to the results page
-            window.location.href = 'adventure.html';
+            // Step 2: Poll for the result
+            pollForResult(jobId);
 
         } catch (error) {
-            console.error('Error during adventure generation:', error);
-            alert('An error occurred while generating your adventure. Please check the console and try again.');
-
-            // Re-enable the button on failure
+            console.error('Error starting adventure generation:', error);
+            alert('An error occurred. Please try again.');
             generateButton.disabled = false;
             loadingMessage.style.display = 'none';
         }
     });
+
+    function pollForResult(jobId) {
+        const loadingMessage = document.getElementById('loading-message');
+        const intervalId = setInterval(async () => {
+            try {
+                const statusResponse = await fetch(`/status/${jobId}`);
+                const result = await statusResponse.json();
+
+                if (result.status === 'complete') {
+                    clearInterval(intervalId);
+                    localStorage.setItem('adventureResult', result.data);
+                    window.location.href = 'adventure.html';
+                } else if (result.status === 'failed') {
+                    clearInterval(intervalId);
+                    alert('Generation failed: ' + result.data);
+                    document.getElementById('generate-button').disabled = false;
+                    loadingMessage.style.display = 'none';
+                }
+                // If status is 'processing', do nothing and wait for the next poll.
+            } catch (error) {
+                clearInterval(intervalId);
+                console.error('Error polling for result:', error);
+                alert('An error occurred while checking the status. Please try again.');
+            }
+        }, 5000); // Check every 5 seconds
+    }
 </script>
 </body>
 </html>
